@@ -46,10 +46,23 @@ class PurpleAirDataCollector:
             # Define the scope
             SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
             
-            # Load credentials
-            creds = Credentials.from_service_account_file(
-                self.credentials_file, scopes=SCOPES
-            )
+            # Try to get credentials from Streamlit secrets first (for deployment)
+            try:
+                import streamlit as st
+                if hasattr(st, 'secrets') and 'google_credentials' in st.secrets:
+                    import json
+                    # Load credentials from Streamlit secrets
+                    credentials_info = json.loads(st.secrets['google_credentials'])
+                    creds = Credentials.from_service_account_info(credentials_info, scopes=SCOPES)
+                    logger.info("Using credentials from Streamlit secrets")
+                else:
+                    raise Exception("No Streamlit secrets found")
+            except:
+                # Fall back to local credentials file
+                creds = Credentials.from_service_account_file(
+                    self.credentials_file, scopes=SCOPES
+                )
+                logger.info("Using local credentials file")
             
             # Build the service
             self.service = build('sheets', 'v4', credentials=creds)

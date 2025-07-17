@@ -2,25 +2,42 @@
 Configuration file for Purple Air Sensor Analysis Project
 """
 import os
+import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# Try to get from Streamlit secrets first, then environment variables, then defaults
+def get_config(key, default=None):
+    """Get configuration value from Streamlit secrets, env vars, or default"""
+    try:
+        # Try Streamlit secrets first (for deployment)
+        if hasattr(st, 'secrets') and key in st.secrets:
+            return st.secrets[key]
+    except:
+        pass
+    
+    # Fall back to environment variables (for local development)
+    return os.getenv(key, default)
+
 # Google Sheets Configuration
-SPREADSHEET_ID = os.getenv('SPREADSHEET_ID', '1KLwB85EZK1WvCCh5iWtkl2gxd_4B__jRWsdDoU1fjs0')  # User's spreadsheet
-SHEET_RANGE = os.getenv('SHEET_RANGE', 'PurpleAir002_AJLC Building!A:Z')  # Correct sheet name
-CREDENTIALS_FILE = os.getenv('CREDENTIALS_FILE', 'credentials.json')
+SPREADSHEET_ID = get_config('SPREADSHEET_ID', '1KLwB85EZK1WvCCh5iWtkl2gxd_4B__jRWsdDoU1fjs0')
+SHEET_RANGE = get_config('SHEET_RANGE', 'PurpleAir002_AJLC Building!A:Z')
+
+# For deployment, credentials will come from Streamlit secrets
+# For local development, use credentials.json file
+CREDENTIALS_FILE = get_config('CREDENTIALS_FILE', 'credentials.json')
 
 # Purple Air Sensor Configuration
 SENSOR_LOCATION = {
-    'latitude': float(os.getenv('SENSOR_LAT', '41.29075599398253')),  # Correct Ohio location
-    'longitude': float(os.getenv('SENSOR_LON', '-82.22151197237143')),  # Correct Ohio location
-    'name': os.getenv('SENSOR_NAME', 'AJLC Building Purple Air Sensor')
+    'latitude': float(get_config('SENSOR_LAT', '41.29075599398253')),
+    'longitude': float(get_config('SENSOR_LON', '-82.22151197237143')),
+    'name': get_config('SENSOR_NAME', 'AJLC Building Purple Air Sensor')
 }
 
 # Data Collection Settings
-UPDATE_INTERVAL_MINUTES = int(os.getenv('UPDATE_INTERVAL', '1'))  # 1 minute default
-DATA_RETENTION_DAYS = int(os.getenv('DATA_RETENTION_DAYS', '30'))  # 30 days default
+UPDATE_INTERVAL_MINUTES = int(get_config('UPDATE_INTERVAL', '1'))
+DATA_RETENTION_DAYS = int(get_config('DATA_RETENTION_DAYS', '30'))
 
 # Column mapping for the user's specific data format
 COLUMN_MAPPING = {
