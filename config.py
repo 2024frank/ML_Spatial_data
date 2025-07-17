@@ -12,9 +12,14 @@ def get_config(key, default=None):
     """Get configuration value from Streamlit secrets, env vars, or default"""
     try:
         # Try Streamlit secrets first (for deployment)
-        if hasattr(st, 'secrets') and key in st.secrets:
-            return st.secrets[key]
-    except:
+        import streamlit as st_check
+        if hasattr(st_check, 'secrets') and key in st_check.secrets:
+            return st_check.secrets[key]
+    except ImportError:
+        # Streamlit not available (e.g., running scripts outside Streamlit)
+        pass
+    except Exception:
+        # Other errors accessing secrets
         pass
     
     # Fall back to environment variables (for local development)
